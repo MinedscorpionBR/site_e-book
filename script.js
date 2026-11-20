@@ -1,3 +1,5 @@
+// Vídeos e referências reunidos por fase do desenvolvimento.
+// As duas URLs iniciais do short kKustnN942c apontam para o mesmo vídeo.
 const etapas = [
   {
     id: "gestantes",
@@ -105,7 +107,13 @@ const etapas = [
     id: "idosos",
     nome: "Idosos",
     idade: "65 anos ou mais",
-    videos: [],
+    videos: [
+      ["Atividade 1 - Circuito das cores e direções", "R6QoXDvZFWk", "normal"],
+      ["Atividade 2 - Circuito de agachamento e passe na escada", "e7z6ftp3cBU", "normal"],
+      ["Atividade 3 - Circuito de passes com bola", "Jb1pKDWQq0A", "normal"],
+      ["Atividade 4 - Jogo da velha", "B3sVkeNDue8", "normal"],
+      ["Atividade 5 - Circuito de memorização e reprodução de cores", "QSkmZFrDmcE", "normal"]
+    ],
     referencias: [
       ["Ministério da Saúde - Guia de atividade física", "https://bvsms.saude.gov.br/bvs/publicacoes/guia_atividade_fisica_populacao_brasileira.pdf"],
       ["Organização Mundial da Saúde - Diretrizes sobre atividade física", "https://www.who.int/publications/i/item/9789240015128"],
