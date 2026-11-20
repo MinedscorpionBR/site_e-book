@@ -1,5 +1,3 @@
-// Vídeos e referências reunidos por fase do desenvolvimento.
-// As duas URLs iniciais do short kKustnN942c apontam para o mesmo vídeo.
 const etapas = [
   {
     id: "gestantes",
@@ -83,8 +81,25 @@ const etapas = [
     id: "adultos",
     nome: "Adultos",
     idade: "18 a 65 anos",
-    videos: [],
-    referencias: []
+    videos: [
+      ["Caminhada", "O-EAHyeOjE8", "short"],
+      ["Agachamento e marcha", null, "grupo", [
+        ["Prática", "xUGEFiOQUlM", "short"],
+        ["Explicação", "eTc7J5SsZUQ", "short"]
+      ]],
+      ["Prancha", "5_vBMs4sgIY", "short"],
+      ["Equilíbrio com um pé", "cs5Pns-m8DQ", "short"]
+    ],
+    referencias: [
+      ["BRASIL. Ministério da Saúde. Guia de atividade física para a população brasileira. Brasília: Ministério da Saúde, 2021."],
+      ["BULL, F. C. et al. World Health Organization 2020 guidelines on physical activity and sedentary behaviour. British Journal of Sports Medicine, v. 54, n. 24, p. 1451-1462, 2020."],
+      ["COMPARATIVE effectiveness of different dual task mode interventions on cognitive function in older adults with mild cognitive impairment or dementia: a systematic review and network meta-analysis. Aging Clinical and Experimental Research, v. 37, n. 1, art. 139, 2025. DOI: 10.1007/s40520-025-03016-5.", "https://doi.org/10.1007/s40520-025-03016-5"],
+      ["EFFECT of dual-task training on balance in older adults: a systematic review and meta-analysis. Archives of Gerontology and Geriatrics, v. 121, art. 105368, 2024."],
+      ["GARBER, C. E. et al. Quantity and quality of exercise for developing and maintaining cardiorespiratory, musculoskeletal, and neuromotor fitness in apparently healthy adults: guidance for prescribing exercise. Medicine & Science in Sports & Exercise, v. 43, n. 7, p. 1334-1359, 2011. DOI: 10.1249/MSS.0b013e318213fefb.", "https://doi.org/10.1249/MSS.0b013e318213fefb"],
+      ["IMPACT of motor-cognitive interventions on selected gait and balance outcomes in older adults: a systematic review and meta-analysis of randomized controlled trials. Frontiers in Psychology, v. 13, art. 837710, 2022. DOI: 10.3389/fpsyg.2022.837710.", "https://doi.org/10.3389/fpsyg.2022.837710"],
+      ["ORGANIZAÇÃO MUNDIAL DA SAÚDE. Diretrizes da OMS para atividade física e comportamento sedentário: num piscar de olhos. Tradução de Edina Maria de Camargo e Ciro Romelio Rodriguez Añez. Genebra: OMS, 2020."],
+      ["THE EFFECT of dual-task training on cognition of people with different clinical conditions: an overview of systematic reviews. IBRO Reports, v. 9, p. 24-31, 2020. DOI: 10.1016/j.ibror.2020.06.005.", "https://doi.org/10.1016/j.ibror.2020.06.005"]
+    ]
   },
   {
     id: "idosos",
@@ -199,10 +214,10 @@ function mostrarEtapa() {
   let conteudo;
 
   if (estado.tipo === "videos") {
-    conteudo = etapa.videos.map(([titulo], indice) => `
-      <button type="button" class="atividade" data-video="${indice}">
+    conteudo = etapa.videos.map(([titulo, , formato], indice) => `
+      <button type="button" class="atividade" ${formato === "grupo" ? `data-submenu="${indice}"` : `data-video="${indice}"`}>
         <span>${escapar(titulo)}</span>
-        <span class="seta" aria-hidden="true">▶</span>
+        <span class="seta" aria-hidden="true">${formato === "grupo" ? "→" : "▶"}</span>
       </button>
     `).join("");
   } else {
@@ -234,16 +249,42 @@ function mostrarEtapa() {
   `;
 }
 
-function mostrarPlayer() {
+function mostrarSubmenu() {
   const etapa = etapas.find(item => item.id === estado.etapa);
-  const video = etapa && etapa.videos[estado.indice];
-
-  if (!video) {
-    mostrarEtapa();
+  const grupo = etapa?.videos[estado.indice];
+  if (!grupo || grupo[2] !== "grupo") {
+    voltar();
     return;
   }
 
-  const [titulo, id, formato] = video;
+  app.innerHTML = `
+    <section>
+      ${botaoVoltar()}
+      ${cabecalho(grupo[0], etapa.nome)}
+      <div class="lista">
+        ${grupo[3].map(([nome], indice) => `
+          <button type="button" class="atividade" data-subvideo="${indice}">
+            <span>${escapar(nome)}</span>
+            <span class="seta" aria-hidden="true">▶</span>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function mostrarPlayer() {
+  const etapa = etapas.find(item => item.id === estado.etapa);
+  const item = etapa?.videos[estado.indice];
+  const video = item?.[2] === "grupo" ? item[3]?.[estado.subIndice] : item;
+
+  if (!video || video[2] === "grupo") {
+    voltar();
+    return;
+  }
+
+  const [nome, id, formato] = video;
+  const titulo = item[2] === "grupo" ? `${item[0]} - ${nome}` : nome;
   const linkOriginal = formato === "short"
     ? `https://www.youtube.com/shorts/${id}`
     : `https://www.youtube.com/watch?v=${id}`;
@@ -281,6 +322,7 @@ function renderizar() {
   if (estado.tela === "inicio") mostrarInicio();
   if (estado.tela === "categorias") mostrarCategorias();
   if (estado.tela === "etapa") mostrarEtapa();
+  if (estado.tela === "submenu") mostrarSubmenu();
   if (estado.tela === "player") mostrarPlayer();
 
   window.scrollTo(0, 0);
@@ -290,15 +332,17 @@ function navegar(proximoEstado) {
   estado = { ...proximoEstado };
   if (location.protocol !== "file:") {
     history.pushState(estado, "", "#/" + [
-      estado.tela, estado.tipo, estado.etapa, estado.indice
-    ].filter(valor => valor !== null).join("/"));
+      estado.tela, estado.tipo, estado.etapa, estado.indice, estado.subIndice
+    ].filter(valor => valor != null).join("/"));
   }
   renderizar();
 }
 
 function voltar() {
-  if (estado.tela === "player") {
-    navegar({ ...estado, tela: "etapa", indice: null });
+  if (estado.tela === "player" && Number.isInteger(estado.subIndice)) {
+    navegar({ ...estado, tela: "submenu", subIndice: null });
+  } else if (estado.tela === "player" || estado.tela === "submenu") {
+    navegar({ ...estado, tela: "etapa", indice: null, subIndice: null });
   } else if (estado.tela === "etapa") {
     navegar({ tela: "categorias", tipo: estado.tipo, etapa: null, indice: null });
   } else {
@@ -319,9 +363,21 @@ app.addEventListener("click", event => {
     return;
   }
 
+  const submenu = event.target.closest("[data-submenu]");
+  if (submenu) {
+    navegar({ ...estado, tela: "submenu", indice: Number(submenu.dataset.submenu), subIndice: null });
+    return;
+  }
+
+  const subvideo = event.target.closest("[data-subvideo]");
+  if (subvideo) {
+    navegar({ ...estado, tela: "player", subIndice: Number(subvideo.dataset.subvideo) });
+    return;
+  }
+
   const video = event.target.closest("[data-video]");
   if (video) {
-    navegar({ ...estado, tela: "player", indice: Number(video.dataset.video) });
+    navegar({ ...estado, tela: "player", indice: Number(video.dataset.video), subIndice: null });
     return;
   }
 
